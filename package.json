@@ -1,0 +1,21 @@
+{
+  "name": "sbom-node",
+  "version": "1.0.0",
+  "description": "To test SBOM generation",
+  "main": "index.js",
+  "scripts": {
+    "test": "foo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ljones140/sbom-node"
+  },
+  "keywords": [
+    "foo"
+  ],
+  "author": "ljones140",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
