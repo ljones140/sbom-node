@@ -6,5 +6,6 @@ app.listen(3000, () => {
 });
 
 app.get("/", (req, res, next) => {
+  console.log("request received")
   res.json({foo: "bar"})  
 });
