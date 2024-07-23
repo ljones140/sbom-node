@@ -1,0 +1,48 @@
+name: Build Image Upload SBOM
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  image-build-SBOM-upload:
+
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Docker
+      uses:  docker/setup-buildx-action@v3
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: sbom-node # you will give this a more relevant name
+    - name: Build image
+      uses: docker/build-push-action@v6
+      with:
+        tags: sbom-node:latest
+        outputs: type=docker,dest=/tmp/sbom-node.tar
+        push: false # not publishing image but you probably will want to
+
+    - name: Generate SBOM # using syft as best tool for image level SBOMs
+      run: |
+        docker load --input /tmp/sbom-node.tar
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /$RUNNER_TEMP
+        chmod +x $RUNNER_TEMP/syft
+        $RUNNER_TEMP/syft sbom-node:latest -o spdx-json@2.2 | jq . > /tmp/spdx.json
+    - name: Upload SBOM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: /tmp/spdx.json
+    - name: upload SBOM Dependancy Snapshot
+      uses: advanced-security/spdx-dependency-submission-action@v0.1.1
+      with:
+        filePath: /tmp/
+        filePattern: spdx.json
